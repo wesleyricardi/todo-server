@@ -1,7 +1,3 @@
-type RepositoryTodoParam = {
-  title: string;
-};
-
 type RepositoryTodoReturn = {
   id: number;
   title: string;
