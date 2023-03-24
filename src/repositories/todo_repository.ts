@@ -1,4 +1,4 @@
-type RepositoryTodoReturn = {
+export type RepositoryTodoReturn = {
   id: number;
   title: string;
   completed: boolean;
@@ -37,26 +37,42 @@ const todos: Todo[] = [
 
 export class TodoRepositoryMock extends BaseRepository {
   store(title: string): RepositoryTodoReturn {
-    const newTodo: Todo = {
-      id: todos.length + 1,
-      title,
-      completed: false,
-    };
-    todos.push(newTodo);
-
-    return newTodo;
+    try {
+      const newTodo: Todo = {
+        id: todos.length + 1,
+        title,
+        completed: false,
+      };
+      todos.push(newTodo);
+      return newTodo;
+    } catch {
+      throw new Error("fail to store the taks");
+    }
   }
   getAll(): RepositoryTodoReturn[] {
+    if (todos.length < 1) {
+      throw new Error("not found tasks ");
+    }
+
     return todos;
   }
 
   getById(id: number): RepositoryTodoReturn {
     const todoIndex = todos.findIndex((todo) => todo.id === id);
+
+    if (todoIndex === -1) {
+      throw new Error("not found task " + id);
+    }
+
     return todos[todoIndex];
   }
 
   delete(id: number): void {
     const todoIndex = todos.findIndex((todo) => todo.id === id);
+
+    if (todoIndex === -1) {
+      throw new Error("not found task " + id);
+    }
 
     todos.splice(todoIndex, 1);
   }
