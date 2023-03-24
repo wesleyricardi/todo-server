@@ -33,3 +33,5 @@ export class TaskView extends TodoView {
     return "marked as incompleted";
   }
 }
+
+//TODO: CREATE A TESTS FOR VIEWS

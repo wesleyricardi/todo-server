@@ -18,7 +18,7 @@ describe("testing todo model", () => {
 
   beforeEach(() => {
     baseRepositoryMock = jest.fn(() => ({
-      store: jest.fn((title: string) => {
+      store: jest.fn(async (title: string) => {
         return {
           id: 1,
           title: title,
@@ -51,11 +51,11 @@ describe("testing todo model", () => {
     }))();
   });
 
-  it("should create a new task", () => {
+  it("should create a new task", async () => {
     const fakeTitle = "new task";
     const model = new TaskModel(baseRepositoryMock);
 
-    const response = model.createTaks(fakeTitle);
+    const response = await model.createTaks(fakeTitle);
 
     expect(baseRepositoryMock.store).toBeCalledTimes(1);
     expect(baseRepositoryMock.store).toBeCalledWith(fakeTitle);

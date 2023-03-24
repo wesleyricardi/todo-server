@@ -1,17 +1,17 @@
-export type RepositoryTodoReturn = {
-  id: number;
-  title: string;
-  completed: boolean;
-};
+import MySQLConnection from "../database/mysql";
 
 interface Todo {
   id: number;
   title: string;
   completed: boolean;
 }
-
+export type RepositoryTodoReturn = {
+  id: number;
+  title: string;
+  completed: boolean;
+};
 export abstract class BaseRepository {
-  abstract store(title: string): RepositoryTodoReturn;
+  abstract store(title: string): Promise<RepositoryTodoReturn>;
 
   abstract getAll(): RepositoryTodoReturn[];
 
@@ -37,9 +37,23 @@ const todos: Todo[] = [
   },
 ];
 
-export class TodoRepositoryMock extends BaseRepository {
-  store(title: string): RepositoryTodoReturn {
+const connection = new MySQLConnection({
+  host: "localhost",
+  user: "root",
+  password: "Senha@597041",
+  database: "todo",
+});
+
+export class TaskRepository extends BaseRepository {
+  async store(title: string): Promise<RepositoryTodoReturn> {
     try {
+      const result = await connection.query(
+        "INSERT INTO tasks (title, completed) VALUES (?, ?)",
+        [title, false]
+      );
+
+      //PAREI AQUI
+
       const newTodo: Todo = {
         id: todos.length + 1,
         title,
@@ -47,8 +61,8 @@ export class TodoRepositoryMock extends BaseRepository {
       };
       todos.push(newTodo);
       return newTodo;
-    } catch {
-      throw new Error("fail to store the taks");
+    } catch (e) {
+      throw new Error("" + e);
     }
   }
   getAll(): RepositoryTodoReturn[] {

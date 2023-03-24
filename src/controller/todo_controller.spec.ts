@@ -32,7 +32,7 @@ describe("testing todo controller", () => {
 
     todoModelMock = jest.fn(() => ({
       repository,
-      createTaks: jest.fn((title: string) => {
+      createTaks: jest.fn(async (title: string) => {
         return {
           id: fakeID,
           title: title,
@@ -76,10 +76,10 @@ describe("testing todo controller", () => {
     }))();
   });
 
-  it("should call  model.createTaks and view.responseAddTodo and return the view returns", () => {
+  it("should call  model.createTaks and view.responseAddTodo and return the view returns", async () => {
     const controller = new TaskController(todoModelMock, todoViewMock);
 
-    const response = controller.addTodo(fakeTitle) as {
+    const response = (await controller.addTodo(fakeTitle)) as {
       id: number;
       title: string;
       completed: boolean;

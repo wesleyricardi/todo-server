@@ -13,7 +13,7 @@ export abstract class TodoModel {
     this.repository = repository;
   }
 
-  abstract createTaks(title: string): ModelTask;
+  abstract createTaks(title: string): Promise<ModelTask>;
 
   abstract getAllTasks(): ModelTask[];
 
@@ -29,9 +29,9 @@ export class TaskModel extends TodoModel {
     super(repository);
   }
 
-  createTaks(title: string): ModelTask {
+  async createTaks(title: string): Promise<ModelTask> {
     try {
-      return this.repository.store(title);
+      return await this.repository.store(title);
     } catch {
       throw new Error("repository fail to create");
     }

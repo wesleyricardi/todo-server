@@ -1,5 +1,5 @@
 import { TaskModel, TodoModel } from "../models/todo_model";
-import { TodoRepositoryMock } from "../repositories/todo_repository";
+import { TaskRepository } from "../repositories/todo_repository";
 import { TaskView, TodoView } from "../view/todo_view";
 
 export abstract class TodoController {
@@ -11,7 +11,7 @@ export abstract class TodoController {
     this.view = view;
   }
 
-  abstract addTodo(title: string): unknown;
+  abstract addTodo(title: string): Promise<unknown>;
 
   abstract getAllTaks(): unknown;
 
@@ -24,15 +24,15 @@ export abstract class TodoController {
 
 class TaskController extends TodoController {
   constructor(
-    model: TodoModel = new TaskModel(new TodoRepositoryMock()), //default value so that it is not necessary to pass it every time the class is instantiated,
+    model: TodoModel = new TaskModel(new TaskRepository()), //default value so that it is not necessary to pass it every time the class is instantiated,
     view: TodoView = new TaskView() //only passing it when implementing a different implementation or in tests
   ) {
     super(model, view);
   }
 
-  public addTodo(title: string) {
+  public async addTodo(title: string) {
     try {
-      const task = this.model.createTaks(title);
+      const task = await this.model.createTaks(title);
       return this.view.responseAddTask(task);
     } catch {
       throw new Error("fail to create a new tasks");
