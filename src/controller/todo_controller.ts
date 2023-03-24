@@ -17,6 +17,8 @@ export abstract class TodoController {
 
   abstract markTodoAsCompleted(id: number): unknown;
 
+  abstract markTodoAsIncompleted(id: number): unknown;
+
   abstract deleteTodoById(id: number): unknown;
 }
 
@@ -33,7 +35,8 @@ class TaskController extends TodoController {
       const task = this.model.createTaks(title);
       return this.view.responseAddTask(task);
     } catch {
-      throw new Error("fail to get all tasks");
+      throw new Error("fail to create a new tasks");
+      //todo: create a test to verify if the error message is correct
     }
   }
 
@@ -43,15 +46,27 @@ class TaskController extends TodoController {
       return this.view.responseGetAllTasks(tasks);
     } catch {
       throw new Error("fail to get all tasks");
+      //todo: create a test to verify if the error message is correct
     }
   }
 
   public markTodoAsCompleted(id: number) {
     try {
-      this.model.markTakAsCompleted(id);
+      this.model.markTaskAsCompleted(id);
       return this.view.responseMarkTaskAsCompleted();
     } catch {
-      throw new Error("fail to get all tasks");
+      throw new Error("fail to mark task as completed");
+      //todo: create a test to verify if the error message is correct
+    }
+  }
+
+  public markTodoAsIncompleted(id: number) {
+    try {
+      this.model.markTaskAsIncompleted(id);
+      return this.view.responseMarkTaskAsIncompleted();
+    } catch {
+      throw new Error("fail to mark task as incompleted");
+      //todo: create a test to verify if the error message is correct
     }
   }
 
@@ -60,7 +75,8 @@ class TaskController extends TodoController {
       this.model.deleteTaks(id);
       return this.view.responseDeleteTask();
     } catch {
-      throw new Error("fail to get all tasks");
+      throw new Error("delete task failed");
+      //todo: create a test to verify if the error message is correct
     }
   }
 }

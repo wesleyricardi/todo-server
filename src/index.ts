@@ -105,6 +105,36 @@ app.put("/mark_task_as_completed", (req: Request, res: Response) => {
   }
 });
 
+app.put("/mark_task_as_incompleted", (req: Request, res: Response) => {
+  //TODO: SANITIZE REQUEST
+  if (!req.query.id) {
+    res.sendStatus(400).json({
+      message: "Its missing ID on query",
+    });
+    return;
+  }
+  const id = parseInt(req.query.id as string);
+
+  if (isNaN(id)) {
+    res.sendStatus(400).json({
+      message: "ID is not a number",
+    });
+    return;
+  }
+
+  const controller = new TaskController();
+
+  try {
+    const response = controller.markTodoAsIncompleted(id);
+
+    res.status(200).json(response);
+  } catch {
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+});
+
 app.listen(3000, () => {
   console.log("server listening on port 3000");
 });

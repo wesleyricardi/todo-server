@@ -12,6 +12,8 @@ export abstract class TodoView {
   abstract responseDeleteTask(): string;
 
   abstract responseMarkTaskAsCompleted(): string;
+
+  abstract responseMarkTaskAsIncompleted(): string;
 }
 
 export class TaskView extends TodoView {
@@ -25,6 +27,9 @@ export class TaskView extends TodoView {
     return "delete successfully";
   }
   responseMarkTaskAsCompleted(): string {
-    return "mark as completed";
+    return "marked as completed";
+  }
+  responseMarkTaskAsIncompleted(): string {
+    return "marked as incompleted";
   }
 }

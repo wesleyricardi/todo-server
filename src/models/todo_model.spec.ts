@@ -44,6 +44,10 @@ describe("testing todo model", () => {
         if (id !== fakeID) throw new Error("not found any task with id: " + id);
         return;
       }),
+      changeToIncompleted: jest.fn((id: number) => {
+        if (id !== fakeID) throw new Error("not found any task with id: " + id);
+        return;
+      }),
     }))();
   });
 
@@ -82,7 +86,7 @@ describe("testing todo model", () => {
   it("should mark task as completed", () => {
     const model = new TaskModel(baseRepositoryMock);
 
-    model.markTakAsCompleted(fakeID);
+    model.markTaskAsCompleted(fakeID);
 
     expect(baseRepositoryMock.changeToCompleted).toBeCalledTimes(1);
     expect(baseRepositoryMock.changeToCompleted).toBeCalledWith(fakeID);

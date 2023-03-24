@@ -19,7 +19,9 @@ export abstract class TodoModel {
 
   abstract deleteTaks(id: number): void;
 
-  abstract markTakAsCompleted(id: number): void;
+  abstract markTaskAsCompleted(id: number): void;
+
+  abstract markTaskAsIncompleted(id: number): void;
 }
 
 export class TaskModel extends TodoModel {
@@ -48,11 +50,19 @@ export class TaskModel extends TodoModel {
       throw new Error("repository fail to delete the tasks");
     }
   }
-  markTakAsCompleted(id: number): void {
+  markTaskAsCompleted(id: number): void {
     try {
       this.repository.changeToCompleted(id);
     } catch {
       throw new Error("repository fail to mark the tasks as completed");
+    }
+  }
+
+  markTaskAsIncompleted(id: number): void {
+    try {
+      this.repository.changeToIncompleted(id);
+    } catch {
+      throw new Error("repository fail to mark the tasks as incompleted");
     }
   }
 }

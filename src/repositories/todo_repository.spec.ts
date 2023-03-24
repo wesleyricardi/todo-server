@@ -61,4 +61,17 @@ describe("Test for todo repository", () => {
     const index = todo_repository.getAll().findIndex((todo) => todo.id === id);
     expect(index).toBe(-1);
   });
+
+  it("should mark as incompleted", () => {
+    const fakeTitle = "Task title";
+    const todo_repository = new TodoRepositoryMock();
+    const { id } = todo_repository.store(fakeTitle);
+
+    todo_repository.changeToCompleted(id);
+    todo_repository.changeToIncompleted(id);
+
+    const { completed } = todo_repository.getById(id);
+
+    expect(completed).toBe(false);
+  });
 });

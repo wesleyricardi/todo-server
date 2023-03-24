@@ -20,6 +20,8 @@ export abstract class BaseRepository {
   abstract delete(id: number): void;
 
   abstract changeToCompleted(id: number): void;
+
+  abstract changeToIncompleted(id: number): void;
 }
 
 const todos: Todo[] = [
@@ -85,5 +87,13 @@ export class TodoRepositoryMock extends BaseRepository {
     }
 
     todos[todoIndex].completed = true;
+  }
+
+  changeToIncompleted(id: number): void {
+    const todoIndex = todos.findIndex((todo) => todo.id === id);
+
+    if (todoIndex < 0) throw new Error("not found task " + id);
+
+    todos[todoIndex].completed = false;
   }
 }

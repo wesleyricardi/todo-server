@@ -27,6 +27,7 @@ describe("testing todo controller", () => {
       getById: jest.fn(),
       delete: jest.fn(),
       changeToCompleted: jest.fn(),
+      changeToIncompleted: jest.fn(),
     }))();
 
     todoModelMock = jest.fn(() => ({
@@ -45,7 +46,12 @@ describe("testing todo controller", () => {
         if (id !== fakeID) throw new Error("not found any task with id: " + id);
         return;
       }),
-      markTakAsCompleted: jest.fn((id: number) => {
+      markTaskAsCompleted: jest.fn((id: number) => {
+        if (id !== fakeID) throw new Error("not found any task with id: " + id);
+        return;
+      }),
+
+      markTaskAsIncompleted: jest.fn((id: number) => {
         if (id !== fakeID) throw new Error("not found any task with id: " + id);
         return;
       }),
@@ -62,6 +68,9 @@ describe("testing todo controller", () => {
         return fakeDeleteReturn;
       }),
       responseMarkTaskAsCompleted: jest.fn(() => {
+        return fakeMarkAsCompletedReturn;
+      }),
+      responseMarkTaskAsIncompleted: jest.fn(() => {
         return fakeMarkAsCompletedReturn;
       }),
     }))();
@@ -126,10 +135,22 @@ describe("testing todo controller", () => {
 
     const response = controller.markTodoAsCompleted(fakeID) as string;
 
-    expect(todoModelMock.markTakAsCompleted).toBeCalledTimes(1);
-    expect(todoModelMock.markTakAsCompleted).toBeCalledWith(fakeID);
+    expect(todoModelMock.markTaskAsCompleted).toBeCalledTimes(1);
+    expect(todoModelMock.markTaskAsCompleted).toBeCalledWith(fakeID);
     expect(todoViewMock.responseMarkTaskAsCompleted).toBeCalledTimes(1);
     expect(todoViewMock.responseMarkTaskAsCompleted).toBeCalledWith();
+    expect(response).toBe(fakeMarkAsCompletedReturn);
+  });
+
+  it("should call model.markTaskAsIncompleted and view.responseMarkTaskAsIncompleted and return the view returns", () => {
+    const controller = new TaskController(todoModelMock, todoViewMock);
+
+    const response = controller.markTodoAsIncompleted(fakeID) as string;
+
+    expect(todoModelMock.markTaskAsIncompleted).toBeCalledTimes(1);
+    expect(todoModelMock.markTaskAsIncompleted).toBeCalledWith(fakeID);
+    expect(todoViewMock.responseMarkTaskAsIncompleted).toBeCalledTimes(1);
+    expect(todoViewMock.responseMarkTaskAsIncompleted).toBeCalledWith();
     expect(response).toBe(fakeMarkAsCompletedReturn);
   });
 });
