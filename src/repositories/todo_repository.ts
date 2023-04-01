@@ -1,113 +1,173 @@
-import MySQLConnection from "../database/mysql";
+import { Ok, Err, Result } from "../lib/ErrorHandler";
+import MySQLPool, { Database } from "../database/mysql";
+import { AppError, CodeError } from "../error/error";
+import { ResultSetHeader } from "mysql2";
+import { Task } from "../entities/task";
 
-interface Todo {
-  id: number;
-  title: string;
-  completed: boolean;
-}
-export type RepositoryTodoReturn = {
-  id: number;
-  title: string;
-  completed: boolean;
-};
 export abstract class BaseRepository {
-  abstract store(title: string): Promise<RepositoryTodoReturn>;
+  database: Database;
 
-  abstract getAll(): RepositoryTodoReturn[];
+  constructor(database: Database) {
+    this.database = database;
+  }
 
-  abstract getById(id: number): RepositoryTodoReturn;
+  abstract store(title: string): Promise<Result<Task, AppError>>;
 
-  abstract delete(id: number): void;
+  abstract getAll(): Promise<Result<Task[], AppError>>;
 
-  abstract changeToCompleted(id: number): void;
+  abstract getById(id: number): Promise<Result<Task, AppError>>;
 
-  abstract changeToIncompleted(id: number): void;
+  abstract delete(id: number): Promise<Result<number, AppError>>;
+
+  abstract changeTask(
+    id: number,
+    title?: string,
+    completed?: boolean
+  ): Promise<Result<number, AppError>>;
 }
 
-const todos: Todo[] = [
-  {
-    id: 1,
-    title: "Learn TypeScript",
-    completed: false,
-  },
-  {
-    id: 2,
-    title: "Build a Todo app",
-    completed: false,
-  },
-];
+if (
+  !process.env.MYSQL_HOST ||
+  !process.env.MYSQL_USER ||
+  !process.env.MYSQL_PASS ||
+  !process.env.TODO_DATABASE_NAME
+) {
+  if (!process.env.MYSQL_HOST)
+    console.log("environment variable MYSQL_HOST its not set");
+  if (!process.env.MYSQL_USER)
+    console.log("environment variable MYSQL_USER its not set");
+  if (!process.env.MYSQL_PASS)
+    console.log("environment variable MYSQL_PASS its not set");
+  if (!process.env.TODO_DATABASE_NAME)
+    console.log("environment variable TODO_DATABASE_NAME its not set");
+  process.exit(1);
+}
 
-const connection = new MySQLConnection({
-  host: "localhost",
-  user: "root",
-  password: "Senha@597041",
-  database: "todo",
-});
+const MYSQL_HOST = process.env.MYSQL_HOST;
+const MYSQL_USER = process.env.MYSQL_USER;
+const MYSQL_PASS = process.env.MYSQL_PASS;
+const TODO_DATABASE_NAME = process.env.TODO_DATABASE_NAME;
 
 export class TaskRepository extends BaseRepository {
-  async store(title: string): Promise<RepositoryTodoReturn> {
-    try {
-      const result = await connection.query(
-        "INSERT INTO tasks (title, completed) VALUES (?, ?)",
-        [title, false]
+  constructor(
+    database: Database = new MySQLPool({
+      host: MYSQL_HOST,
+      user: MYSQL_USER,
+      password: MYSQL_PASS,
+      database: TODO_DATABASE_NAME,
+    })
+  ) {
+    super(database);
+  }
+
+  async store(title: string): Promise<Result<Task, AppError>> {
+    const result = await this.database.query<ResultSetHeader>(
+      "INSERT INTO tasks (title, completed) VALUES (?, ?)",
+      [title, false]
+    );
+
+    if (result.error) return Err(result.error);
+    const { insertId } = result.success_or_throw;
+
+    return Ok({
+      id: insertId,
+      title,
+      completed: false,
+    });
+  }
+  async getAll(): Promise<Result<Task[], AppError>> {
+    const result = await this.database.query<Task[]>("SELECT * FROM tasks");
+
+    if (result.error) return Err(result.error);
+    const tasks = result.success_or_throw;
+
+    if (tasks.length < 1)
+      return Err(
+        new AppError("not found any tasks", CodeError.NOT_FOUND, "model")
       );
 
-      //PAREI AQUI
-
-      const newTodo: Todo = {
-        id: todos.length + 1,
-        title,
-        completed: false,
-      };
-      todos.push(newTodo);
-      return newTodo;
-    } catch (e) {
-      throw new Error("" + e);
-    }
-  }
-  getAll(): RepositoryTodoReturn[] {
-    if (todos.length < 1) {
-      throw new Error("not found tasks ");
-    }
-
-    return todos;
+    return Ok(tasks);
   }
 
-  getById(id: number): RepositoryTodoReturn {
-    const todoIndex = todos.findIndex((todo) => todo.id === id);
+  async getById(id: number): Promise<Result<Task, AppError>> {
+    const result = await this.database.query<Task[]>(
+      "SELECT * FROM tasks WHERE id = ?",
+      [id]
+    );
 
-    if (todoIndex === -1) {
-      throw new Error("not found task " + id);
-    }
+    if (result.error) return Err(result.error);
+    if (!result.success_or_throw.length)
+      return Err(
+        new AppError(
+          "Not found any task with id " + id,
+          CodeError.NOT_FOUND,
+          "repository"
+        )
+      );
 
-    return todos[todoIndex];
+    const task = result.success_or_throw[0];
+
+    return Ok(task);
   }
 
-  delete(id: number): void {
-    const todoIndex = todos.findIndex((todo) => todo.id === id);
+  async delete(id: number): Promise<Result<number, AppError>> {
+    const result = await this.database.query<ResultSetHeader>(
+      "DELETE FROM tasks WHERE id = ?",
+      [id]
+    );
 
-    if (todoIndex === -1) {
-      throw new Error("not found task " + id);
-    }
+    if (result.error) return Err(result.error);
+    const { affectedRows } = result.success_or_throw;
+    if (!affectedRows)
+      return Err(
+        new AppError("Delete task failed", CodeError.NOT_FOUND, "repository")
+      );
 
-    todos.splice(todoIndex, 1);
+    return Ok(1);
   }
 
-  changeToCompleted(id: number): void {
-    const todoIndex = todos.findIndex((todo) => todo.id === id);
+  async changeTask(
+    id: number,
+    title?: string,
+    completed?: boolean
+  ): Promise<Result<number, AppError>> {
+    if (!title === undefined && completed === undefined)
+      return Err(
+        new AppError(
+          "title and completed are empty",
+          CodeError.BAD_REQUEST,
+          "repository"
+        )
+      );
 
-    if (todoIndex === -1) {
-      throw new Error("not found task " + id);
-    }
+    const titleQuery = title !== undefined ? " title = ?" : "";
+    const completedQuery =
+      completed !== undefined
+        ? title !== undefined
+          ? ", completed = ?"
+          : " completed = ?"
+        : "";
 
-    todos[todoIndex].completed = true;
-  }
+    const query =
+      "UPDATE tasks SET" + titleQuery + completedQuery + " WHERE id = ?";
 
-  changeToIncompleted(id: number): void {
-    const todoIndex = todos.findIndex((todo) => todo.id === id);
+    const queryArray = [];
+    if (title !== undefined) queryArray.push(title);
+    if (completed !== undefined) queryArray.push(completed);
+    queryArray.push(id);
 
-    if (todoIndex < 0) throw new Error("not found task " + id);
+    const result = await this.database.query<ResultSetHeader>(
+      query,
+      queryArray
+    );
 
-    todos[todoIndex].completed = false;
+    if (result.error) return Err(result.error);
+    const { affectedRows } = result.success_or_throw;
+    if (!affectedRows)
+      return Err(
+        new AppError("Update task failed", CodeError.NOT_FOUND, "repository")
+      );
+
+    return Ok(1);
   }
 }

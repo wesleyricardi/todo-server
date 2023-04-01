@@ -1,3 +1,5 @@
+import { Task } from "../entities/task";
+
 export type ViewTodoParam = {
   id: number;
   title: string;
@@ -5,9 +7,9 @@ export type ViewTodoParam = {
 };
 
 export abstract class TodoView {
-  abstract responseAddTask(response: ViewTodoParam): unknown;
+  abstract responseAddTask(response: ViewTodoParam): Task;
 
-  abstract responseGetAllTasks(response: ViewTodoParam[]): unknown[];
+  abstract responseGetAllTasks(response: ViewTodoParam[]): Task[];
 
   abstract responseDeleteTask(): string;
 
@@ -17,10 +19,10 @@ export abstract class TodoView {
 }
 
 export class TaskView extends TodoView {
-  responseAddTask(response: ViewTodoParam): unknown {
+  responseAddTask(response: ViewTodoParam): Task {
     return response;
   }
-  responseGetAllTasks(response: ViewTodoParam[]): unknown[] {
+  responseGetAllTasks(response: ViewTodoParam[]): Task[] {
     return response;
   }
   responseDeleteTask(): string {

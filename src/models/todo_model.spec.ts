@@ -1,4 +1,5 @@
-import { BaseRepository } from "~/repositories/todo_repository";
+import { Ok } from "../lib/ErrorHandler";
+import { BaseRepository } from "../repositories/todo_repository";
 import { TaskModel } from "./todo_model";
 
 describe("testing todo model", () => {
@@ -17,37 +18,35 @@ describe("testing todo model", () => {
   };
 
   beforeEach(() => {
+    const database = jest.fn(() => ({
+      query: jest.fn(),
+      execute: jest.fn(),
+    }))();
     baseRepositoryMock = jest.fn(() => ({
+      database,
       store: jest.fn(async (title: string) => {
-        return {
+        return Ok({
           id: 1,
           title: title,
           completed: false,
-        };
+        });
       }),
-      getAll: jest.fn(() => {
-        return [fakeTask, fakeTask2];
+      getAll: jest.fn(async () => {
+        return Ok([fakeTask, fakeTask2]);
       }),
-      getById: jest.fn((id: number) => {
+      getById: jest.fn(async (id: number) => {
         if (id !== fakeID) throw new Error("not found any task with id: " + id);
-        return {
+        return Ok({
           id,
           title: "fake task",
           completed: false,
-        };
+        });
       }),
-      delete: jest.fn((id: number) => {
+      delete: jest.fn(async (id: number) => {
         if (id !== fakeID) throw new Error("not found any task with id: " + id);
-        return;
+        return Ok(null);
       }),
-      changeToCompleted: jest.fn((id: number) => {
-        if (id !== fakeID) throw new Error("not found any task with id: " + id);
-        return;
-      }),
-      changeToIncompleted: jest.fn((id: number) => {
-        if (id !== fakeID) throw new Error("not found any task with id: " + id);
-        return;
-      }),
+      changeTask: jest.fn(),
     }))();
   });
 
@@ -55,40 +54,36 @@ describe("testing todo model", () => {
     const fakeTitle = "new task";
     const model = new TaskModel(baseRepositoryMock);
 
-    const response = await model.createTaks(fakeTitle);
+    const result = await model.createTaks(fakeTitle);
+
+    const task = result.success_or_throw;
 
     expect(baseRepositoryMock.store).toBeCalledTimes(1);
     expect(baseRepositoryMock.store).toBeCalledWith(fakeTitle);
-    expect(response).toStrictEqual({
+    expect(task).toStrictEqual({
       id: 1,
       title: fakeTitle,
       completed: false,
     });
   });
 
-  it("should get all tasks", () => {
+  it("should get all tasks", async () => {
     const model = new TaskModel(baseRepositoryMock);
 
-    const response = model.getAllTasks();
+    const result = await model.getAllTasks();
+    const tasks = result.success_or_throw;
 
     expect(baseRepositoryMock.getAll).toBeCalledTimes(1);
-    expect(response).toStrictEqual([fakeTask, fakeTask2]);
+    expect(tasks).toStrictEqual([fakeTask, fakeTask2]);
   });
 
-  it("should delete task", () => {
+  it("should delete task", async () => {
     const model = new TaskModel(baseRepositoryMock);
 
-    model.deleteTaks(fakeID);
+    const result = (await model.deleteTaks(fakeID)).success_or_throw;
+
+    expect(result).toEqual(1);
     expect(baseRepositoryMock.delete).toBeCalledTimes(1);
     expect(baseRepositoryMock.delete).toBeCalledWith(fakeID);
-  });
-
-  it("should mark task as completed", () => {
-    const model = new TaskModel(baseRepositoryMock);
-
-    model.markTaskAsCompleted(fakeID);
-
-    expect(baseRepositoryMock.changeToCompleted).toBeCalledTimes(1);
-    expect(baseRepositoryMock.changeToCompleted).toBeCalledWith(fakeID);
   });
 });

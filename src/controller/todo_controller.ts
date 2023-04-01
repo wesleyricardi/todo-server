@@ -1,83 +1,96 @@
+import { Task } from "src/entities/task";
+import { AppError } from "../error/error";
+import { Err, Ok, Result } from "../lib/ErrorHandler";
 import { TaskModel, TodoModel } from "../models/todo_model";
 import { TaskRepository } from "../repositories/todo_repository";
-import { TaskView, TodoView } from "../view/todo_view";
 
 export abstract class TodoController {
   model: TodoModel;
-  view: TodoView;
 
-  constructor(model: TodoModel, view: TodoView) {
+  constructor(model: TodoModel) {
     this.model = model;
-    this.view = view;
   }
 
-  abstract addTodo(title: string): Promise<unknown>;
+  abstract addTodo<T>(
+    title: string,
+    view: (task: Task) => T
+  ): Promise<Result<T, AppError>>;
 
-  abstract getAllTaks(): unknown;
+  abstract getAllTaks<T>(
+    view: (tasks: Task[]) => T[]
+  ): Promise<Result<T[], AppError>>;
 
-  abstract markTodoAsCompleted(id: number): unknown;
+  abstract markTodoAsCompleted<T>(
+    id: number,
+    view: () => T
+  ): Promise<Result<T, AppError>>;
 
-  abstract markTodoAsIncompleted(id: number): unknown;
+  abstract markTodoAsIncompleted<T>(
+    id: number,
+    view: () => T
+  ): Promise<Result<T, AppError>>;
 
-  abstract deleteTodoById(id: number): unknown;
+  abstract deleteTodoById<T>(
+    id: number,
+    view: () => T
+  ): Promise<Result<T, AppError>>;
 }
 
 class TaskController extends TodoController {
   constructor(
-    model: TodoModel = new TaskModel(new TaskRepository()), //default value so that it is not necessary to pass it every time the class is instantiated,
-    view: TodoView = new TaskView() //only passing it when implementing a different implementation or in tests
+    //default value so that it is not necessary to pass it every time the class is instantiated,
+    //only passing it when implementing a different implementation or in tests
+    model: TodoModel = new TaskModel(new TaskRepository())
   ) {
-    super(model, view);
+    super(model);
   }
 
-  public async addTodo(title: string) {
-    try {
-      const task = await this.model.createTaks(title);
-      return this.view.responseAddTask(task);
-    } catch {
-      throw new Error("fail to create a new tasks");
-      //todo: create a test to verify if the error message is correct
-    }
+  public async addTodo<T>(
+    title: string,
+    view: (task: Task) => T
+  ): Promise<Result<T, AppError>> {
+    const result = await this.model.createTaks(title);
+    if (result.error) return Err(result.error);
+
+    const task = result.success_or_throw;
+    return Ok(view(task));
   }
 
-  public getAllTaks() {
-    try {
-      const tasks = this.model.getAllTasks();
-      return this.view.responseGetAllTasks(tasks);
-    } catch {
-      throw new Error("fail to get all tasks");
-      //todo: create a test to verify if the error message is correct
-    }
+  public async getAllTaks<T>(
+    view: (tasks: Task[]) => T[]
+  ): Promise<Result<T[], AppError>> {
+    const result = await this.model.getAllTasks();
+    if (result.error) return Err(result.error);
+    const tasks = result.success_or_throw;
+
+    return Ok(view(tasks));
   }
 
-  public markTodoAsCompleted(id: number) {
-    try {
-      this.model.markTaskAsCompleted(id);
-      return this.view.responseMarkTaskAsCompleted();
-    } catch {
-      throw new Error("fail to mark task as completed");
-      //todo: create a test to verify if the error message is correct
-    }
+  public async markTodoAsCompleted<T>(
+    id: number,
+    view: () => T
+  ): Promise<Result<T, AppError>> {
+    const result = await this.model.markTaskAsCompleted(id);
+    if (result.error) return Err(result.error);
+    return Ok(view());
   }
 
-  public markTodoAsIncompleted(id: number) {
-    try {
-      this.model.markTaskAsIncompleted(id);
-      return this.view.responseMarkTaskAsIncompleted();
-    } catch {
-      throw new Error("fail to mark task as incompleted");
-      //todo: create a test to verify if the error message is correct
-    }
+  public async markTodoAsIncompleted<T>(
+    id: number,
+    view: () => T
+  ): Promise<Result<T, AppError>> {
+    const result = await this.model.markTaskAsIncompleted(id);
+    if (result.error) return Err(result.error);
+    return Ok(view());
   }
 
-  public deleteTodoById(id: number) {
-    try {
-      this.model.deleteTaks(id);
-      return this.view.responseDeleteTask();
-    } catch {
-      throw new Error("delete task failed");
-      //todo: create a test to verify if the error message is correct
-    }
+  public async deleteTodoById<T>(
+    id: number,
+    view: () => T
+  ): Promise<Result<T, AppError>> {
+    const result = await this.model.deleteTaks(id);
+    if (result.error) return Err(result.error);
+    return Ok(view());
   }
 }
 
