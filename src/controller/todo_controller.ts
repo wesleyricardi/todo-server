@@ -1,8 +1,8 @@
-import { Task } from "src/entities/task";
-import { AppError } from "../error/error";
-import { Err, Ok, Result } from "../lib/ErrorHandler";
-import { TaskModel, TodoModel } from "../models/todo_model";
-import { TaskRepository } from "../repositories/todo_repository";
+import { Task } from "../entities/task.js";
+import { AppError } from "../error/error.js";
+import { Err, Ok, Result } from "../utils/ErrorHandler.js";
+import { TaskModel, TodoModel } from "../models/todo_model.js";
+import { TaskRepository } from "../repositories/todo_repository.js";
 
 export abstract class TodoController {
   model: TodoModel;
@@ -11,86 +11,61 @@ export abstract class TodoController {
     this.model = model;
   }
 
-  abstract addTodo<T>(
+  abstract create(
     title: string,
-    view: (task: Task) => T
-  ): Promise<Result<T, AppError>>;
+  ): Promise<Result<Task, AppError>>;
 
-  abstract getAllTaks<T>(
-    view: (tasks: Task[]) => T[]
-  ): Promise<Result<T[], AppError>>;
+  abstract getAll(): Promise<Result<Task[], AppError>>;
 
-  abstract markTodoAsCompleted<T>(
+  abstract get(id: number): Promise<Result<Task, AppError>>;
+
+  abstract update(
     id: number,
-    view: () => T
-  ): Promise<Result<T, AppError>>;
+    title: string,
+    completed: boolean
+  ): Promise<Result<string, AppError>>;
 
-  abstract markTodoAsIncompleted<T>(
+  abstract delete(
     id: number,
-    view: () => T
-  ): Promise<Result<T, AppError>>;
-
-  abstract deleteTodoById<T>(
-    id: number,
-    view: () => T
-  ): Promise<Result<T, AppError>>;
+  ): Promise<Result<string, AppError>>;
 }
 
 class TaskController extends TodoController {
   constructor(
-    //default value so that it is not necessary to pass it every time the class is instantiated,
-    //only passing it when implementing a different implementation or in tests
     model: TodoModel = new TaskModel(new TaskRepository())
   ) {
     super(model);
   }
 
-  public async addTodo<T>(
+  public async create(
     title: string,
-    view: (task: Task) => T
-  ): Promise<Result<T, AppError>> {
-    const result = await this.model.createTaks(title);
-    if (result.error) return Err(result.error);
-
-    const task = result.success_or_throw;
-    return Ok(view(task));
+  ): Promise<Result<Task, AppError>> {
+    return await this.model.create(title);
   }
 
-  public async getAllTaks<T>(
-    view: (tasks: Task[]) => T[]
-  ): Promise<Result<T[], AppError>> {
-    const result = await this.model.getAllTasks();
-    if (result.error) return Err(result.error);
-    const tasks = result.success_or_throw;
-
-    return Ok(view(tasks));
+  public async getAll(): Promise<Result<Task[], AppError>> {
+    return await this.model.getAll();
   }
 
-  public async markTodoAsCompleted<T>(
+  public async get(id: number): Promise<Result<Task, AppError>> {
+    return await this.model.get(id);
+  }
+
+  public async update(
     id: number,
-    view: () => T
-  ): Promise<Result<T, AppError>> {
-    const result = await this.model.markTaskAsCompleted(id);
+    title: string,
+    completed: boolean
+  ): Promise<Result<string, AppError>> {
+    const result = await this.model.update(id, title, completed);
     if (result.error) return Err(result.error);
-    return Ok(view());
+    return Ok(`updated task ${id}`);
   }
 
-  public async markTodoAsIncompleted<T>(
-    id: number,
-    view: () => T
-  ): Promise<Result<T, AppError>> {
-    const result = await this.model.markTaskAsIncompleted(id);
-    if (result.error) return Err(result.error);
-    return Ok(view());
-  }
 
-  public async deleteTodoById<T>(
-    id: number,
-    view: () => T
-  ): Promise<Result<T, AppError>> {
-    const result = await this.model.deleteTaks(id);
+  public async delete(id: number): Promise<Result<string, AppError>> {
+    const result = await this.model.delete(id);
     if (result.error) return Err(result.error);
-    return Ok(view());
+    return Ok(`deleted task ${id}`);
   }
 }
 

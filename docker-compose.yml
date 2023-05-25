@@ -4,13 +4,26 @@ volumes:
   db_data:
 
 services:
+  compiler:
+      build:
+          context: .
+      image: todo-server:latest
+      volumes:
+        - .:/app
+      ports:
+        - "3000:3000"
+      environment:
+        MYSQL_HOST: database
+        MYSQL_USER: root
+        MYSQL_PASS: 123456789
+        TODO_DATABASE_NAME: todo
+      working_dir: /app
   database:
     image: mysql
     ports:
       - "3306:3306"
     environment:
       MYSQL_DATABASE: todo
-      MYSQL_USER: root
       MYSQL_ROOT_PASSWORD: 123456789
       MYSQL_PASSWORD: 123456789
     volumes:

@@ -1,31 +1,51 @@
 import express from "express";
 import { Request, Response } from "express";
-import translate_app_error_to_rest from "../error_translate/app_error_to_rest";
-import TaskController from "../controller/todo_controller";
-import { TaskView } from "../view/todo_view";
-import { AppError } from "src/error/error";
-import { Task } from "../entities/task";
+import translate_app_error_to_rest from "../utils/adapters/app_err_to_rest.js";
+import TaskController from "../controller/todo_controller.js";
+import { AppError } from "../error/error.js";
+import { Task } from "../entities/task.js";
 
 export const routes = express.Router();
 
-routes.get("/get_all_tasks", async (req: Request, res: Response) => {
+routes.get("/tasks", async (req: Request, res: Response) => {
   const controller = new TaskController();
-  const { responseGetAllTasks } = new TaskView();
-
-  const result = await controller.getAllTaks(responseGetAllTasks);
+  const result = await controller.getAll();
 
   result.resolve(
-    (response) => {
+    (response: Task[]) => {
       res.status(200).json(response);
     },
-    (error) => {
+    (error: AppError) => {
       const restError = translate_app_error_to_rest(error);
       res.status(restError.status).json(restError.message);
     }
   );
 });
 
-routes.post("/add_task", async (req: Request, res: Response) => {
+routes.get("/task/:id", async (req: Request, res: Response) => {
+  const id = Number(req.params.productId)
+  if (isNaN(id)) {
+    res.sendStatus(400).json({
+      message: "ID is not a number",
+    });
+    return;
+  }
+
+  const controller = new TaskController();
+  const result = await controller.get(id);
+
+  result.resolve(
+    (response: Task) => {
+      res.status(200).json(response);
+    },
+    (error: AppError) => {
+      const restError = translate_app_error_to_rest(error);
+      res.status(restError.status).json(restError.message);
+    }
+  );
+});
+
+routes.post("/task", async (req: Request, res: Response) => {
   if (!req.body?.title) {
     res.sendStatus(400).json({
       message: "Its missing title on body",
@@ -35,33 +55,23 @@ routes.post("/add_task", async (req: Request, res: Response) => {
   const { body } = req;
 
   const controller = new TaskController();
-  const { responseAddTask } = new TaskView();
-
-  const result = await controller.addTodo(
-    body.title as string,
-    responseAddTask
+  const result = await controller.create(
+    body.title as string
   );
 
   result.resolve(
-    (response) => {
+    (response: Task) => {
       res.status(201).json(response);
     },
-    (error) => {
+    (error: AppError) => {
       const restError = translate_app_error_to_rest(error);
       res.status(restError.status).json(restError.message);
     }
   );
 });
 
-routes.delete("/delete_task", async (req: Request, res: Response) => {
-  if (!req.query.id) {
-    res.sendStatus(400).json({
-      message: "Its missing ID on query",
-    });
-    return;
-  }
-  const id = parseInt(req.query.id as string);
-
+routes.delete("/task/:id", async (req: Request, res: Response) => {
+  const id = Number(req.params.productId)
   if (isNaN(id)) {
     res.sendStatus(400).json({
       message: "ID is not a number",
@@ -70,86 +80,43 @@ routes.delete("/delete_task", async (req: Request, res: Response) => {
   }
 
   const controller = new TaskController();
-  const { responseDeleteTask } = new TaskView();
-
-  const result = await controller.deleteTodoById(id, responseDeleteTask);
+  const result = await controller.delete(id);
 
   result.resolve(
-    (response) => {
+    (response: string) => {
       res.status(200).json(response);
     },
-    (error) => {
+    (error: AppError) => {
       const restError = translate_app_error_to_rest(error);
       res.status(restError.status).json(restError.message);
     }
   );
 });
 
-routes.put("/mark_task_as_completed", async (req: Request, res: Response) => {
-  if (!req.query.id) {
-    res.sendStatus(400).json({
-      message: "Its missing ID on query",
-    });
-    return;
-  }
-
-  const id = parseInt(req.query.id as string);
-
+routes.put("/task/:id", async (req: Request, res: Response) => {
+  const id = Number(req.params.productId)
   if (isNaN(id)) {
     res.sendStatus(400).json({
       message: "ID is not a number",
     });
     return;
   }
+  
+  let {title, completed} = req.body;
+  completed = completed ? Boolean(completed) : undefined;
 
   const controller = new TaskController();
-  const { responseMarkTaskAsCompleted } = new TaskView();
-
-  const result = await controller.markTodoAsCompleted(
+  const result = await controller.update(
     id,
-    responseMarkTaskAsCompleted
+    title,
+    completed 
   );
 
   result.resolve(
-    (response) => {
+    (response: string) => {
       res.status(200).json(response);
     },
-    (error) => {
-      const restError = translate_app_error_to_rest(error);
-      res.status(restError.status).json(restError.message);
-    }
-  );
-});
-
-routes.put("/mark_task_as_incompleted", async (req: Request, res: Response) => {
-  if (!req.query.id) {
-    res.sendStatus(400).json({
-      message: "Its missing ID on query",
-    });
-    return;
-  }
-  const id = parseInt(req.query.id as string);
-
-  if (isNaN(id)) {
-    res.sendStatus(400).json({
-      message: "ID is not a number",
-    });
-    return;
-  }
-
-  const controller = new TaskController();
-  const { responseMarkTaskAsIncompleted } = new TaskView();
-
-  const result = await controller.markTodoAsIncompleted(
-    id,
-    responseMarkTaskAsIncompleted
-  );
-
-  result.resolve(
-    (response) => {
-      res.status(200).json(response);
-    },
-    (error) => {
+    (error: AppError) => {
       const restError = translate_app_error_to_rest(error);
       res.status(restError.status).json(restError.message);
     }

@@ -46,8 +46,8 @@ or the onError callback if there is an error.
 @returns Returns the result of either the onSuccess or onError callback, depending on whether the computation was successful or not. 
 */
   resolve<R, X>(
-    onSuccess: (success: NonNullable<T>) => R,
-    onError: (error: NonNullable<E>) => X
+    onSuccess: (success: T) => R,
+    onError: (error: E) => X
   ) {
     if (this.success === null) return onError(this.error!);
     return onSuccess(this.success!);

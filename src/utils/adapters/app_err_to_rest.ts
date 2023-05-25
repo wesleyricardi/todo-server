@@ -1,6 +1,6 @@
-import { AppError, CodeError } from "../error/error";
+import { AppError, CodeError } from "../../error/error.js";
 
-export default function translate_app_error_to_rest(appError: AppError): {
+export default function map_app_error_to_rest(appError: AppError): {
   status: number;
   message: string;
 } {

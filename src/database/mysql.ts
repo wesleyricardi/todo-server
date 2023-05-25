@@ -5,8 +5,8 @@ import mysql, {
   ResultSetHeader,
   RowDataPacket,
 } from "mysql2/promise";
-import { AppError, CodeError } from "../error/error";
-import { Err, Ok, Result } from "../lib/ErrorHandler";
+import { AppError, CodeError } from "../error/error.js";
+import { Err, Ok, Result } from "../utils/ErrorHandler.js";
 
 export type QueryReturn =
   | RowDataPacket[]
@@ -17,10 +17,6 @@ export type QueryReturn =
 
 export abstract class Database {
   abstract query<T = QueryReturn>(
-    sql: string,
-    values?: (string | number | boolean)[]
-  ): Promise<Result<T, AppError>>;
-  abstract execute<T = QueryReturn>(
     sql: string,
     values?: (string | number | boolean)[]
   ): Promise<Result<T, AppError>>;

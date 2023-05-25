@@ -1,4 +1,4 @@
-import MySQLPool from "./database/mysql";
+import MySQLPool from "./database/mysql.js";
 import * as dotenv from "dotenv";
 
 dotenv.config();

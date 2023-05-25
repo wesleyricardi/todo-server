@@ -1,6 +1,6 @@
-import { Ok } from "../lib/ErrorHandler";
-import { BaseRepository } from "../repositories/todo_repository";
-import { TaskModel } from "./todo_model";
+import { Ok } from "../utils/ErrorHandler.js";
+import { BaseRepository } from "../repositories/todo_repository.js";
+import { TaskModel } from "./todo_model.js";
 
 describe("testing todo model", () => {
   let baseRepositoryMock: jest.Mocked<BaseRepository>;
@@ -20,7 +20,6 @@ describe("testing todo model", () => {
   beforeEach(() => {
     const database = jest.fn(() => ({
       query: jest.fn(),
-      execute: jest.fn(),
     }))();
     baseRepositoryMock = jest.fn(() => ({
       database,
@@ -34,8 +33,7 @@ describe("testing todo model", () => {
       getAll: jest.fn(async () => {
         return Ok([fakeTask, fakeTask2]);
       }),
-      getById: jest.fn(async (id: number) => {
-        if (id !== fakeID) throw new Error("not found any task with id: " + id);
+      get: jest.fn(async (id: number) => {
         return Ok({
           id,
           title: "fake task",
@@ -43,10 +41,11 @@ describe("testing todo model", () => {
         });
       }),
       delete: jest.fn(async (id: number) => {
-        if (id !== fakeID) throw new Error("not found any task with id: " + id);
-        return Ok(null);
+        return Ok(1);
       }),
-      changeTask: jest.fn(),
+      storeUpdate: jest.fn(async (id: number, title?:string, boolean?:boolean) => {
+        return Ok(1)
+      }),
     }))();
   });
 
@@ -54,7 +53,7 @@ describe("testing todo model", () => {
     const fakeTitle = "new task";
     const model = new TaskModel(baseRepositoryMock);
 
-    const result = await model.createTaks(fakeTitle);
+    const result = await model.create(fakeTitle);
 
     const task = result.success_or_throw;
 
@@ -70,17 +69,37 @@ describe("testing todo model", () => {
   it("should get all tasks", async () => {
     const model = new TaskModel(baseRepositoryMock);
 
-    const result = await model.getAllTasks();
+    const result = await model.getAll();
     const tasks = result.success_or_throw;
 
     expect(baseRepositoryMock.getAll).toBeCalledTimes(1);
     expect(tasks).toStrictEqual([fakeTask, fakeTask2]);
   });
 
+  it("should get task", async () => {
+    const model = new TaskModel(baseRepositoryMock);
+
+    const result = await model.get(fakeID);
+    const tasks = result.success_or_throw;
+
+    expect(baseRepositoryMock.get).toBeCalledTimes(1);
+    expect(tasks).toStrictEqual(fakeTask);
+  });
+
+  it("should update task", async () => {
+    const model =  new TaskModel(baseRepositoryMock);
+
+    const result = (await model.update(1, "update title", true)).success_or_throw;
+    
+    expect(result).toEqual(1);
+    expect(baseRepositoryMock.storeUpdate).toBeCalledTimes(1);
+    expect(baseRepositoryMock.storeUpdate).toBeCalledWith(fakeID, "update title", true);
+  })
+
   it("should delete task", async () => {
     const model = new TaskModel(baseRepositoryMock);
 
-    const result = (await model.deleteTaks(fakeID)).success_or_throw;
+    const result = (await model.delete(fakeID)).success_or_throw;
 
     expect(result).toEqual(1);
     expect(baseRepositoryMock.delete).toBeCalledTimes(1);

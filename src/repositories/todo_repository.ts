@@ -1,8 +1,8 @@
-import { Ok, Err, Result } from "../lib/ErrorHandler";
-import MySQLPool, { Database } from "../database/mysql";
-import { AppError, CodeError } from "../error/error";
 import { ResultSetHeader } from "mysql2";
-import { Task } from "../entities/task";
+import { Ok, Err, Result } from "../utils/ErrorHandler.js";
+import MySQLPool, { Database } from "../database/mysql.js";
+import { AppError, CodeError } from "../error/error.js";
+import { Task } from "../entities/task.js";
 
 export abstract class BaseRepository {
   database: Database;
@@ -15,32 +15,15 @@ export abstract class BaseRepository {
 
   abstract getAll(): Promise<Result<Task[], AppError>>;
 
-  abstract getById(id: number): Promise<Result<Task, AppError>>;
+  abstract get(id: number): Promise<Result<Task, AppError>>;
 
   abstract delete(id: number): Promise<Result<number, AppError>>;
 
-  abstract changeTask(
+  abstract storeUpdate(
     id: number,
     title?: string,
     completed?: boolean
   ): Promise<Result<number, AppError>>;
-}
-
-if (
-  !process.env.MYSQL_HOST ||
-  !process.env.MYSQL_USER ||
-  !process.env.MYSQL_PASS ||
-  !process.env.TODO_DATABASE_NAME
-) {
-  if (!process.env.MYSQL_HOST)
-    console.log("environment variable MYSQL_HOST its not set");
-  if (!process.env.MYSQL_USER)
-    console.log("environment variable MYSQL_USER its not set");
-  if (!process.env.MYSQL_PASS)
-    console.log("environment variable MYSQL_PASS its not set");
-  if (!process.env.TODO_DATABASE_NAME)
-    console.log("environment variable TODO_DATABASE_NAME its not set");
-  process.exit(1);
 }
 
 const MYSQL_HOST = process.env.MYSQL_HOST;
@@ -89,7 +72,7 @@ export class TaskRepository extends BaseRepository {
     return Ok(tasks);
   }
 
-  async getById(id: number): Promise<Result<Task, AppError>> {
+  async get(id: number): Promise<Result<Task, AppError>> {
     const result = await this.database.query<Task[]>(
       "SELECT * FROM tasks WHERE id = ?",
       [id]
@@ -126,7 +109,7 @@ export class TaskRepository extends BaseRepository {
     return Ok(1);
   }
 
-  async changeTask(
+  async storeUpdate(
     id: number,
     title?: string,
     completed?: boolean

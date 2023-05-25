@@ -1,7 +1,7 @@
-import { Task } from "../entities/task";
-import { AppError } from "../error/error";
-import { Err, Ok, Result } from "../lib/ErrorHandler";
-import { BaseRepository } from "../repositories/todo_repository";
+import { Task } from "../entities/task.js";
+import { AppError } from "../error/error.js";
+import { Err, Ok, Result } from "../utils/ErrorHandler.js";
+import { BaseRepository } from "../repositories/todo_repository.js";
 
 export abstract class TodoModel {
   repository: BaseRepository;
@@ -10,15 +10,15 @@ export abstract class TodoModel {
     this.repository = repository;
   }
 
-  abstract createTaks(title: string): Promise<Result<Task, AppError>>;
+  abstract create(title: string): Promise<Result<Task, AppError>>;
 
-  abstract getAllTasks(): Promise<Result<Task[], AppError>>;
+  abstract getAll(): Promise<Result<Task[], AppError>>;
 
-  abstract deleteTaks(id: number): Promise<Result<number, AppError>>;
+  abstract get(id: number): Promise<Result<Task, AppError>>;
 
-  abstract markTaskAsCompleted(id: number): Promise<Result<number, AppError>>;
+  abstract delete(id: number): Promise<Result<number, AppError>>;
 
-  abstract markTaskAsIncompleted(id: number): Promise<Result<number, AppError>>;
+  abstract update(id: number, title?: string, completed?: boolean): Promise<Result<number, AppError>>;
 }
 
 export class TaskModel extends TodoModel {
@@ -26,36 +26,33 @@ export class TaskModel extends TodoModel {
     super(repository);
   }
 
-  async createTaks(title: string): Promise<Result<Task, AppError>> {
+  async create(title: string): Promise<Result<Task, AppError>> {
     const result = await this.repository.store(title);
-    if (result.error) return Err(result.error);
 
-    return Ok(result.success_or_throw);
+    return result;
   }
 
-  async getAllTasks(): Promise<Result<Task[], AppError>> {
+  async getAll(): Promise<Result<Task[], AppError>> {
     const result = await this.repository.getAll();
-    if (result.error) return Err(result.error);
 
-    return Ok(result.success_or_throw);
+    return result;
   }
-  async deleteTaks(id: number): Promise<Result<number, AppError>> {
+
+  async get(id: number): Promise<Result<Task, AppError>> {
+    const result = await this.repository.get(id);
+
+    return result;
+  }
+
+  async update(id:number, title?: string, completed?: boolean): Promise<Result<number, AppError>> {
+    const result = await this.repository.storeUpdate(id, title, completed);
+
+    return result;
+  }
+
+  async delete(id: number): Promise<Result<number, AppError>> {
     const result = await this.repository.delete(id);
-    if (result.error) return Err(result.error);
 
-    return Ok(1);
-  }
-  async markTaskAsCompleted(id: number): Promise<Result<number, AppError>> {
-    const result = await this.repository.changeTask(id, undefined, true);
-    if (result.error) return Err(result.error);
-
-    return Ok(1);
-  }
-
-  async markTaskAsIncompleted(id: number): Promise<Result<number, AppError>> {
-    const result = await this.repository.changeTask(id, undefined, false);
-    if (result.error) return Err(result.error);
-
-    return Ok(1);
+    return result;
   }
 }

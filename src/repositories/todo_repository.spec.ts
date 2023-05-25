@@ -1,6 +1,6 @@
-import { Ok } from "../lib/ErrorHandler";
-import { Database } from "../database/mysql";
-import { TaskRepository } from "./todo_repository";
+import { Ok } from "../utils/ErrorHandler.js";
+import { Database } from "../database/mysql.js";
+import { TaskRepository } from "./todo_repository.js";
 
 describe("Test for todo repository", () => {
   const fakeTitle = "Task title";
@@ -44,9 +44,7 @@ describe("Test for todo repository", () => {
     const todoDatabaseMock: Database = jest.fn(() => ({
       query: jest.fn(async <T = null>() => {
         return Ok([fakeTask, fakeTask2] as unknown as T);
-      }),
-      execute: jest.fn(),
-      getConnection: jest.fn(),
+      })
     }))();
     const todo_repository = new TaskRepository(todoDatabaseMock);
 
@@ -68,7 +66,7 @@ describe("Test for todo repository", () => {
     }))();
     const todo_repository = new TaskRepository(todoDatabaseMock);
 
-    const result = await todo_repository.getById(fakeTask.id);
+    const result = await todo_repository.get(fakeTask.id);
     const task = result.success_or_throw;
 
     expect(todoDatabaseMock.query).toBeCalledTimes(1);
@@ -108,7 +106,7 @@ describe("Test for todo repository", () => {
     }))();
     const todo_repository = new TaskRepository(todoDatabaseMock);
 
-    await todo_repository.changeTask(
+    await todo_repository.storeUpdate(
       fakeTask.id,
       fakeTask.title,
       fakeTask.completed
@@ -131,7 +129,7 @@ describe("Test for todo repository", () => {
     }))();
     const todo_repository = new TaskRepository(todoDatabaseMock);
 
-    await todo_repository.changeTask(fakeTask.id, fakeTask.title);
+    await todo_repository.storeUpdate(fakeTask.id, fakeTask.title);
 
     expect(todoDatabaseMock.query).toBeCalledTimes(1);
     expect(todoDatabaseMock.query).toBeCalledWith(
@@ -150,7 +148,7 @@ describe("Test for todo repository", () => {
     }))();
     const todo_repository = new TaskRepository(todoDatabaseMock);
 
-    await todo_repository.changeTask(
+    await todo_repository.storeUpdate(
       fakeTask.id,
       undefined,
       fakeTask.completed
