@@ -3,6 +3,7 @@ import { AppError } from "../error/error.js";
 import { Err, Ok } from "../utils/ErrorHandler.js";
 import { TodoModel } from "../models/todo_model.js";
 import TaskController from "./todo_controller.js";
+import { PrismaClient } from "@prisma/client";
 
 describe("testing todo controller", () => {
   let todoModelMock: jest.Mocked<TodoModel>;
@@ -20,12 +21,9 @@ describe("testing todo controller", () => {
   };
 
   beforeEach(() => {
-    const database = jest.fn(() => ({
-      query: jest.fn(),
-      execute: jest.fn(),
-    }))();
+    const prisma = new PrismaClient();
     const repository = jest.fn(() => ({
-      database,
+      prisma,
       store: jest.fn(),
       getAll: jest.fn(),
       get: jest.fn(),

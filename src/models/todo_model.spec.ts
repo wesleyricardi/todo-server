@@ -1,6 +1,7 @@
 import { Ok } from "../utils/ErrorHandler.js";
 import { BaseRepository } from "../repositories/todo_repository.js";
 import { TaskModel } from "./todo_model.js";
+import { PrismaClient } from "@prisma/client";
 
 describe("testing todo model", () => {
   let baseRepositoryMock: jest.Mocked<BaseRepository>;
@@ -18,11 +19,9 @@ describe("testing todo model", () => {
   };
 
   beforeEach(() => {
-    const database = jest.fn(() => ({
-      query: jest.fn(),
-    }))();
+    const prisma = new PrismaClient();
     baseRepositoryMock = jest.fn(() => ({
-      database,
+      prisma,
       store: jest.fn(async (title: string) => {
         return Ok({
           id: 1,

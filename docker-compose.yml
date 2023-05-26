@@ -13,18 +13,18 @@ services:
       ports:
         - "3000:3000"
       environment:
-        MYSQL_HOST: database
-        MYSQL_USER: root
-        MYSQL_PASS: 123456789
-        TODO_DATABASE_NAME: todo
+        DATABASE_URL: postgres://postgres:123456789@database:5432/todo?schema=public
       working_dir: /app
   database:
-    image: mysql
+    image: postgres:14.5
+    container_name: postgres
     ports:
-      - "3306:3306"
+      - "5432:5432"
     environment:
-      MYSQL_DATABASE: todo
-      MYSQL_ROOT_PASSWORD: 123456789
-      MYSQL_PASSWORD: 123456789
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456789
+      POSTGRES_DB: todo
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/todo/postgresql/data
+      - type: tmpfs
+        target: /dev/shm
