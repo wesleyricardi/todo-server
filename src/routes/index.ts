@@ -103,8 +103,13 @@ routes.put("/task/:id", async (req: Request, res: Response) => {
   }
   
   let {title, completed} = req.body;
-  completed = completed ? Boolean(completed) : undefined;
 
+  completed = completed === undefined
+   ? undefined
+   : completed === 'false' || completed === '0'
+      ? false 
+      : !!completed
+  
   const controller = new TaskController();
   const result = await controller.update(
     id,
