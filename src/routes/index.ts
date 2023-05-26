@@ -23,7 +23,7 @@ routes.get("/tasks", async (req: Request, res: Response) => {
 });
 
 routes.get("/task/:id", async (req: Request, res: Response) => {
-  const id = Number(req.params.productId)
+  const id = Number(req.params.id)
   if (isNaN(id)) {
     res.sendStatus(400).json({
       message: "ID is not a number",
@@ -71,7 +71,7 @@ routes.post("/task", async (req: Request, res: Response) => {
 });
 
 routes.delete("/task/:id", async (req: Request, res: Response) => {
-  const id = Number(req.params.productId)
+  const id = Number(req.params.id)
   if (isNaN(id)) {
     res.sendStatus(400).json({
       message: "ID is not a number",
@@ -94,7 +94,7 @@ routes.delete("/task/:id", async (req: Request, res: Response) => {
 });
 
 routes.put("/task/:id", async (req: Request, res: Response) => {
-  const id = Number(req.params.productId)
+  const id = Number(req.params.id)
   if (isNaN(id)) {
     res.sendStatus(400).json({
       message: "ID is not a number",
