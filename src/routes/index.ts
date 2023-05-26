@@ -25,7 +25,7 @@ routes.get("/tasks", async (req: Request, res: Response) => {
 routes.get("/task/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id)
   if (isNaN(id)) {
-    res.sendStatus(400).json({
+    res.status(400).json({
       message: "ID is not a number",
     });
     return;
@@ -47,7 +47,7 @@ routes.get("/task/:id", async (req: Request, res: Response) => {
 
 routes.post("/task", async (req: Request, res: Response) => {
   if (!req.body?.title) {
-    res.sendStatus(400).json({
+    res.status(400).json({
       message: "Its missing title on body",
     });
     return;
@@ -73,7 +73,7 @@ routes.post("/task", async (req: Request, res: Response) => {
 routes.delete("/task/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id)
   if (isNaN(id)) {
-    res.sendStatus(400).json({
+    res.status(400).json({
       message: "ID is not a number",
     });
     return;
@@ -96,7 +96,7 @@ routes.delete("/task/:id", async (req: Request, res: Response) => {
 routes.put("/task/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id)
   if (isNaN(id)) {
-    res.sendStatus(400).json({
+    res.status(400).json({
       message: "ID is not a number",
     });
     return;
