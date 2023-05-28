@@ -1,6 +1,6 @@
 import { Task } from "../entities/task.js";
 import { AppError } from "../error/error.js";
-import { Err, Ok, Result } from "../utils/ErrorHandler.js";
+import { Result } from "../utils/ErrorHandler.js";
 import { BaseRepository } from "../repositories/todo_repository.js";
 
 export abstract class TodoModel {
