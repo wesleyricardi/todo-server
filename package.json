@@ -5,9 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "vercel-build": "echo hello",
     "build": "tsc",
-    "start": "tsc && node dist/index.js",
-    "migration": "ts-node-esm src/migration.ts",
+    "start": "ts-node-esm src/index.ts",
+    "migration": "prisma migrate dev",
     "dev": "ts-node-esm src/index.ts",
     "test": "jest --passWithNoTests"
   },
